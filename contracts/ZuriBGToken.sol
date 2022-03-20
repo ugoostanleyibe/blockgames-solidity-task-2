@@ -2,22 +2,23 @@
 pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ZuriBGToken is ERC20, Ownable {
-  uint256 constant tokensPerEther = 1000;
+contract ZuriBGToken is ERC20 {
+  uint256 fixedSupplyAmount;
+  uint256 tokensPerEther;
 
   constructor() ERC20("ZuriBGToken", "ZBT") {
-    _mint(msg.sender, 1000000 * 10**decimals());
-  }
+    fixedSupplyAmount = 1000000 * 10**decimals();
+    tokensPerEther = 1000;
 
-  function mint(address addr, uint256 amount) public onlyOwner {
-    _mint(addr, amount);
+    _mint(msg.sender, 1000000 * 10**decimals());
   }
 
   function buyToken(address addr) public payable {
     require(msg.value > 0, "You have to send some ETH");
-    uint256 tokensToSend = (msg.value / 10**decimals()) * tokensPerEther;
+    uint256 tokensToSend = msg.value * tokensPerEther;
+
+    require(tokensToSend + totalSupply() <= fixedSupplyAmount, "You cannot buy more than fixed supply");
     _mint(addr, tokensToSend);
   }
 }
